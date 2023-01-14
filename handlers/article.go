@@ -5,16 +5,19 @@ import (
 	dto "BE-finaltask/dto/result"
 	"BE-finaltask/models"
 	"BE-finaltask/repositories"
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/go-playground/validator"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
-
-var path_file = "http://localhost:5000/uploads/"
 
 type handlerArticle struct {
 	ArticleRepository repositories.ArticleRepository
@@ -34,7 +37,8 @@ func (h *handlerArticle) FindArticle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i, p := range article {
-		article[i].Image = path_file + p.Image
+		imagePath := os.Getenv("PATH_FILE") + p.Image
+		article[i].Image = imagePath
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -53,7 +57,7 @@ func (h *handlerArticle) GetArticle(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
-	article.Image = path_file + article.Image
+	article.Image = os.Getenv("PATH_FILE") + article.Image
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: article}
 	json.NewEncoder(w).Encode(response)
@@ -67,14 +71,14 @@ func (h *handlerArticle) AddArticle(w http.ResponseWriter, r *http.Request) {
 	userId := int(userInfo["id"].(float64))
 
 	dataContex := r.Context().Value("dataFile") // add this code
-	filename := dataContex.(string)             // add this code
+	filepath := dataContex.(string)             // add this code
 
 	request := articledto.ArticleRequest{
 		Title:       r.FormValue("title"),
-		Image:       filename,
 		Description: r.FormValue("description"),
 		UserID:      userId,
 	}
+
 	validation := validator.New()
 	err := validation.Struct(request)
 	if err != nil {
@@ -83,9 +87,22 @@ func (h *handlerArticle) AddArticle(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+
+	var ctx = context.Background()
+	var CLOUD_NAME = os.Getenv("CLOUD_NAME")
+	var API_KEY = os.Getenv("API_KEY")
+	var API_SECRET = os.Getenv("API_SECRET")
+
+	cld, _ := cloudinary.NewFromParams(CLOUD_NAME, API_KEY, API_SECRET)
+
+	resp, err := cld.Upload.Upload(ctx, filepath, uploader.UploadParams{Folder: "hello_corona"})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 	article := models.Article{
 		Title:       request.Title,
-		Image:       request.Image,
+		Image:       resp.SecureURL,
 		Description: request.Description,
 		UserID:      request.UserID,
 	}

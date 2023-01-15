@@ -9,6 +9,7 @@ import (
 type UserRepository interface {
 	FindUser() ([]models.User, error)
 	GetUser(ID int) (models.User, error)
+	UpdateUser(user models.User) (models.User, error)
 	DeleteUser(user models.User) (models.User, error)
 }
 
@@ -27,6 +28,12 @@ func (r *repository) GetUser(ID int) (models.User, error) {
 	err := r.db.First(&users, ID).Error
 
 	return users, err
+}
+
+func (r *repository) UpdateUser(user models.User) (models.User, error) {
+	err := r.db.Model(&user).Updates(user).Error
+
+	return user, err
 }
 
 func (r *repository) DeleteUser(user models.User) (models.User, error) {

@@ -6,13 +6,17 @@ import (
 	"BE-finaltask/models"
 	"BE-finaltask/repositories"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/go-playground/validator"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
+	"gopkg.in/gomail.v2"
 )
 
 type handlerConsultation struct {
@@ -211,6 +215,56 @@ func (h *handlerConsultation) UpdateConsultation(w http.ResponseWriter, r *http.
 	}
 	if request.UpdateAt != time {
 		consultation.UpdateAt = request.UpdateAt
+	}
+
+	if request.Status == "Waiting Live Consultation" {
+		var CONFIG_SMTP_HOST = "smtp.gmail.com"
+		var CONFIG_SMTP_PORT = 587
+		var CONFIG_SENDER_NAME = "Hello Corona<dionovalino@gmail.com>"
+		var CONFIG_AUTH_EMAIL = os.Getenv("SYSTEM_EMAIL")
+		var CONFIG_AUTH_PASSWORD = os.Getenv("SYSTEM_PASSWORD")
+
+		var link = request.Link
+
+		mailer := gomail.NewMessage()
+		mailer.SetHeader("From", CONFIG_SENDER_NAME)
+		mailer.SetHeader("To", consultation.User.Email)
+		mailer.SetHeader("Subject", "Consultation Status")
+		mailer.SetBody("text/html", fmt.Sprintf(`<!DOCTYPE html>
+		<html lang="en">
+		  <head>
+		  <meta charset="UTF-8" />
+		  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		  <title>Document</title>
+		  <style>
+			h1 {
+			color: brown;
+			}
+		  </style>
+		  </head>
+		  <body>
+		  <h2>Konsultasi Mu Telah di Approve Oleh Dokter Silahkan Join Live :</h2>
+		  <ul style="list-style-type:none;">
+			<li>Link For consultation: %s</li>
+			<li>Status	 : <b>%s</b></li>
+		  </ul>
+		  </body>
+		</html>`, link, consultation.Status))
+
+		dialer := gomail.NewDialer(
+			CONFIG_SMTP_HOST,
+			CONFIG_SMTP_PORT,
+			CONFIG_AUTH_EMAIL,
+			CONFIG_AUTH_PASSWORD,
+		)
+
+		err := dialer.DialAndSend(mailer)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		log.Println("Mail sent! to " + consultation.User.Email)
 	}
 
 	data, err := h.ConsultationRepository.UpdateConsultation(consultation)

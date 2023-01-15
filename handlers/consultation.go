@@ -64,7 +64,7 @@ func (h *handlerConsultation) CreateConsultation(w http.ResponseWriter, r *http.
 	height, _ := strconv.Atoi(r.FormValue("height"))
 	weight, _ := strconv.Atoi(r.FormValue("weight"))
 	dateconsul, _ := time.Parse("2006-01-02", r.FormValue("dateconsul"))
-
+	doctor, _ := strconv.Atoi(r.FormValue("doctor_id"))
 	request := consultationdto.ConsultationRequest{
 		Fullname:    r.FormValue("fullname"),
 		Phone:       r.FormValue("phone"),
@@ -77,6 +77,7 @@ func (h *handlerConsultation) CreateConsultation(w http.ResponseWriter, r *http.
 		DateConsul:  dateconsul,
 		Description: r.FormValue("description"),
 		UserID:      userId,
+		Doctor:      doctor,
 	}
 
 	validation := validator.New()
@@ -100,6 +101,7 @@ func (h *handlerConsultation) CreateConsultation(w http.ResponseWriter, r *http.
 		DateConsul:  request.DateConsul,
 		Description: request.Description,
 		UserID:      request.UserID,
+		DoctorID:    request.Doctor,
 		Status:      "Waiting Approve Consultation",
 	}
 
@@ -205,7 +207,7 @@ func (h *handlerConsultation) UpdateConsultation(w http.ResponseWriter, r *http.
 	}
 
 	if request.Link != "" {
-		consultation.Link = "meet.google.com/new"
+		consultation.Link = "https://meet.google.com/new"
 	}
 	if request.UpdateAt != time {
 		consultation.UpdateAt = request.UpdateAt

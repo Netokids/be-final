@@ -17,6 +17,7 @@ type ConsultationRequest struct {
 	Status      string    `json:"status" form:"status"`
 	Reply       string    `json:"reply" form:"reply"`
 	Link        string    `json:"link" form:"link"`
+	Doctor      int       `json:"doctor_id" form:"doctor_id"`
 	CreatedAt   time.Time `json:"CreatedAt" form:"CreatedAt"`
 	UpdateAt    time.Time `json:"UpdateAt" form:"UpdateAt"`
 }

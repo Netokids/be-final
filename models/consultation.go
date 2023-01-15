@@ -16,9 +16,12 @@ type Consultation struct {
 	Description string       `json:"description" gorm:"type : varchar (255)"`
 	User        UserResponse `json:"user"`
 	UserID      int          `json:"-"`
+	Doctor      UserResponse `json:"doctor"`
+	DoctorID    int          `json:"-"`
 	Status      string       `json:"status" gorm:"type : varchar (255)"`
 	Reply       string       `json:"reply" gorm:"type : varchar (255)"`
 	Link        string       `json:"link" gorm:"type : varchar (255)"`
-	CreatedAt   time.Time    `json:"CreatedAt"`
-	UpdateAt    time.Time    `json:"UpdateAt"`
+
+	CreatedAt time.Time `json:"CreatedAt"`
+	UpdateAt  time.Time `json:"UpdateAt"`
 }

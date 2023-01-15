@@ -19,14 +19,14 @@ func RepositoryConsultation(db *gorm.DB) *repository {
 
 func (r *repository) FindConsultation() ([]models.Consultation, error) {
 	var consultations []models.Consultation
-	err := r.db.Preload("User").Find(&consultations).Error
+	err := r.db.Preload("User").Preload("Doctor").Find(&consultations).Error
 
 	return consultations, err
 }
 
 func (r *repository) GetConsultation(id int) (models.Consultation, error) {
 	var consultation models.Consultation
-	err := r.db.Preload("User").First(&consultation, id).Error
+	err := r.db.Preload("User").Preload("Doctor").First(&consultation, id).Error
 
 	return consultation, err
 }
